@@ -22,7 +22,7 @@ def load_labelled():
         for line in open('data/content_3000/{}.txt'.format(i)):
             lines.add(line.strip())
     return lines
-have_lines = load_labelled()
+# have_lines = load_labelled()
 
 
 def random_ids(in_name, out_name, lens):
@@ -97,7 +97,6 @@ def label_split(in_name):
     """
     分割数据，用于数据标注划分
     """
-
     index = 0
     for line in open(in_name):
         with open(in_name[:-4] + '-({}).txt'.format(int(index / 500 + 1)), 'a') as f:
@@ -141,11 +140,11 @@ if __name__ == '__main__':
     # random_ids('data/_id.txt', 100)
     # get_train_data('data/002446.txt')
 
-    for i in range(5):
-        random_ids('data/content/{}.txt'.format(i), 'data/content_sample_3000/{}.txt'.format(i), 3000)
+    # for i in range(5):
+        # random_ids('data/content/{}.txt'.format(i), 'data/content_sample_3000/{}.txt'.format(i), 3000)
 
 
     # for i in range(1, 5):
     #     label_split('data/content_3000/{}.txt'.format(i))
 
-    # what_the_fuck()
+    what_the_fuck()
