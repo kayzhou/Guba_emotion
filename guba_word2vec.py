@@ -2,7 +2,8 @@ import glob
 import json
 from collections import defaultdict
 
-from gensim import corpora, models
+from gensim import corpora
+from gensim.models import Word2Vec, TfidfModel
 from thulac import thulac
 
 thu = thulac(seg_only=True)
@@ -23,21 +24,23 @@ def get_train_data():
     # stop_word = load_stopword()
     in_dir = '/home/kayzhou/Project/Guba_analysis/data/content/'
     for in_name in glob.glob(in_dir + '*.txt'):
-        if in_name != '0.txt': continue
+        # print(in_name)
+        if not in_name.endswith('0.txt'): continue
         for i, line in enumerate(open(in_name)):
-            words = []
             if i > 100: break
+            words = []
             if line.strip() == '':
                 continue
-            s = line.split('\t')[1]
+            s = line.strip().split('\t')[1]
+            # print(s)
             for w in thu.cut(s):  # 分词
                 w = w[0]
                 # if w in stop_word:
                 # continue
                 words.append(w)
-
             texts.append(words)
 
+    # print(texts)
     # Count word frequencies
     frequency = defaultdict(int)
     for text in texts:
@@ -45,20 +48,31 @@ def get_train_data():
             frequency[token] += 1
 
     # Only keep words that appear more than once
-    processed_corpus = [ [token for token in text if frequency[token] > 1] for text in texts ]
+    processed_corpus = [[token for token in text if frequency[token] > 1] for text in texts]
     return processed_corpus
 
 
+def to_words(s):
+    words = []
+    for w in thu.cut(s):  # 分词
+        w = w[0]
+        words.append(w)
+    return words
+
+
 processed_corpus = get_train_data()
+# print(processed_corpus)
 dictionary = corpora.Dictionary(processed_corpus)
 print(dictionary)
 print(dictionary.token2id)
 
 
-new_doc = "等一个涨停"
+new_doc = to_words("开始加仓")
 new_vec = dictionary.doc2bow(new_doc)
+print(new_vec)
 bow_corpus = [dictionary.doc2bow(text) for text in processed_corpus]
-tfidf = models.TfidfModel(bow_corpus)
+tfidf = TfidfModel(bow_corpus)
+print(tfidf[new_vec])
 
-# transform the "system minors" string
-print(tfidf[dictionary.doc2bow("system minors".lower().split())])
+model = Word2Vec(processed_corpus, size=100, window=5, min_count=1, workers=4)
+model.save("word2vec.model")
