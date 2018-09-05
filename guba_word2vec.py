@@ -25,9 +25,9 @@ def get_train_data():
     in_dir = '/home/kayzhou/Project/Guba_analysis/data/content/'
     for in_name in glob.glob(in_dir + '*.txt'):
         # print(in_name)
-        if not in_name.endswith('0.txt'): continue
+        # if not in_name.endswith('0.txt'): continue
         for i, line in enumerate(open(in_name)):
-            if i > 100: break
+            # if i > 100: break
             words = []
             if line.strip() == '':
                 continue
