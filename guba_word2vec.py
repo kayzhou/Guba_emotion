@@ -62,17 +62,15 @@ def to_words(s):
 
 processed_corpus = get_train_data()
 # print(processed_corpus)
-dictionary = corpora.Dictionary(processed_corpus)
-print(dictionary)
-print(dictionary.token2id)
+# dictionary = corpora.Dictionary(processed_corpus)
+# print(dictionary)
+# print(dictionary.token2id)
+# new_doc = to_words("开始加仓")
+# new_vec = dictionary.doc2bow(new_doc)
+# print(new_vec)
+# bow_corpus = [dictionary.doc2bow(text) for text in processed_corpus]
+# tfidf = TfidfModel(bow_corpus)
+# print(tfidf[new_vec])
 
-
-new_doc = to_words("开始加仓")
-new_vec = dictionary.doc2bow(new_doc)
-print(new_vec)
-bow_corpus = [dictionary.doc2bow(text) for text in processed_corpus]
-tfidf = TfidfModel(bow_corpus)
-print(tfidf[new_vec])
-
-model = Word2Vec(processed_corpus, size=100, window=5, min_count=1, workers=4)
+model = Word2Vec(processed_corpus, size=300, window=8, min_count=5, workers=8)
 model.save("word2vec.model")
