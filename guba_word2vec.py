@@ -26,11 +26,7 @@ def get_train_data():
     """
     # stop_word = load_stopword()
     in_name = '/home/kayzhou/Project/Guba_analysis/data/content/tweets.txt'
-    for i, line in enumerate(open(in_name)):
-        if i % 1000 == 0:
-            print('line ->', i)
-        words = to_words(line.strip())
-        yield words
+    return [to_words(line.strip()) for i, line in enumerate(open(in_name))]
 
 
 corpus = get_train_data()
