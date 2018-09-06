@@ -20,6 +20,15 @@ def to_words(s):
     return [w[0] for w in thu.cut(s)]
 
 
+def cut_them():
+    in_name = '/home/kayzhou/Project/Guba_analysis/data/content/tweets.txt'
+    with open('/home/kayzhou/Project/Guba_analysis/data/content/cuted_tweets.txt', 'w') as f:
+        for i, line in enumerate(open(in_name)):
+            if i % 10000 == 0:
+                print(i)
+            f.write(' '.join(to_words(line.strip())) + '\n')
+
+
 def get_train_data():
     """
     加载所有数据
@@ -31,11 +40,13 @@ def get_train_data():
         if i % 10000 == 0:
             print(i)
         d.append(to_words(line.strip()))
+    return d
 
-corpus = get_train_data()
-# print(next(corpus))
+if __name__ == '__main__':
+    corpus = get_train_data()
+    # print(next(corpus))
 
-print('最终开始训练 ... ...')
-# model = Word2Vec(corpus, size=300, window=8, min_count=5, workers=8)
-model = FastText(corpus, size=300, window=5, min_count=5, iter=10)
-model.save("model/guba_word2vec.model")
+    print('最终开始训练 ... ...')
+    # model = Word2Vec(corpus, size=300, window=8, min_count=5, workers=8)
+    model = FastText(corpus, size=300, window=5, min_count=5, iter=10)
+    model.save("model/guba_word2vec.model")
