@@ -33,6 +33,8 @@ def get_train_data():
         yield words
 
 
-processed_corpus = get_train_data()
-model = Word2Vec(processed_corpus, size=300, window=8, min_count=5, workers=8)
+corpus = get_train_data()
+# print(next(corpus))
+
+model = Word2Vec(corpus, size=300, window=8, min_count=5, workers=8)
 model.save("model/guba_word2vec.model")
