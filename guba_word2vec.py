@@ -39,7 +39,7 @@ def get_train_data():
 
 
 if __name__ == '__main__':
-    # cut_them()
+    cut_them()
     corpus = LineSentence('/home/kayzhou/Project/Guba_analysis/data/content/cuted_tweets.txt')
     print(type(corpus))
 
