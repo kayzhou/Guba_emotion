@@ -126,7 +126,7 @@ def get_word_freq():
 
 def make_features_onehot():
 
-    def load_word_list(first=2000):
+    def load_word_list(first=2400):
         word_list = []
         for i, line in enumerate(open('data/word_gain_freq.txt')):
             if i >= first:
@@ -163,7 +163,7 @@ def make_features_onehot():
 
 def load_word_vec():
     """
-    加载ACL2018词向量，只加载信息增益筛选过后的词
+    加载ACL2018词向量
     """
     word_vec = {}
     print('加载词向量中 ...')
