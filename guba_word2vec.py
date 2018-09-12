@@ -8,14 +8,7 @@ from gensim.models import Word2Vec, TfidfModel, FastText
 from thulac import thulac
 from tqdm import tqdm
 
-thu = thulac(seg_only=True)
-
-
-def load_stopword():
-    """
-    加载停用词集合
-    """
-    return set(json.load(open('data/stopword-zh.json')))
+thu = thulac(user_dict='data/emo-words.txt', seg_only=True)
 
 
 def to_words(s):
