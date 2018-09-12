@@ -142,7 +142,7 @@ def make_features_onehot():
     word_list = load_word_list()
 
     i = 0
-    with open('data/train/one_hot-180912.txt', 'w') as f:
+    with open('data/train/onehot-180912.txt', 'w') as f:
         for y, s in zip(labels, sentences):
             i += 1
             if not i % 1000:
@@ -289,7 +289,7 @@ def train():
     调参
     """
     # 合并数据
-    X1, y1 = load_train_data('data/train/one_hot-180912.txt')
+    X1, y1 = load_train_data('data/train/onehot-180912.txt')
     print(X1.shape, y1.shape)
     X2, y2 = load_train_data('data/train/ACL-180912.txt')
     print(X2.shape, y2.shape)
@@ -300,7 +300,7 @@ def train():
     stack_X_y(X1, y1, X3, y3, out_name='data/train/all-180912.txt')
 
 
-    X, y = load_train_data('data/train/all-180907.txt', num=4)
+    X, y = load_train_data('data/train/all-180912.txt', num=4)
     print(X.shape, y.shape)
 
     # 划分数据集
@@ -325,9 +325,6 @@ def train():
 
         # CV
         print('accuracy of CV:', cross_val_score(clf, X, y, cv=5).mean())
-
-#         # 执行训练
-#         clf.fit(X_train, y_train)
 
         # 模型评估
         y_pred = []
