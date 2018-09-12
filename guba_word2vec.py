@@ -44,7 +44,7 @@ def get_train_data():
 
 if __name__ == '__main__':
     corpus = get_train_data()
-    # print(next(corpus))
+    # print(next(corpus))s
 
     print('最终开始训练 ... ...')
     # model = Word2Vec(corpus, size=300, window=8, min_count=5, workers=8)
