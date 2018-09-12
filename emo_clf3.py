@@ -181,11 +181,11 @@ def load_word_vec():
     return word_vec
 
 
-word_vec = load_word_vec()
-
 def make_features_ACLwv():
+    word_vec = load_word_vec()
     i = 0
     # 建立训练文件：ACL的wv
+    print('---- ACL wv ----')
     with open('data/train/ACL-180912.txt', 'w') as f:
         for y, s in zip(labels, sentences):
             i += 1
@@ -213,6 +213,7 @@ def make_features_ACLwv():
 def make_features_mywv():
     i = 0
     # 建立训练文件: 我的wv
+    print('---- 我的wv ----')
     with open('data/train/wv-180912.txt', 'w') as f:
         for y, s in zip(labels, sentences):
             i += 1
@@ -289,6 +290,7 @@ def train():
     调参
     """
     # 合并数据
+    """
     X1, y1 = load_train_data('data/train/onehot-180912.txt')
     print(X1.shape, y1.shape)
     X2, y2 = load_train_data('data/train/ACL-180912.txt')
@@ -298,17 +300,17 @@ def train():
     X1, y1 = load_train_data('data/train/tmp.txt')
     X3, y3 = load_train_data('data/train/wv-180912.txt')
     stack_X_y(X1, y1, X3, y3, out_name='data/train/all-180912.txt')
-
+    """
 
     X, y = load_train_data('data/train/all-180912.txt', num=4)
     print(X.shape, y.shape)
 
     # 划分数据集
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=41)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=23)
 
 
     # 初始化分类器
-    test_classifiers = ['KNN', 'LR', 'RF', 'DT', 'GBDT', 'SVM']
+    test_classifiers = ['LR', 'DT', 'GBDT']
     classifiers = {'NB':naive_bayes_classifier,
                   'KNN':knn_classifier,
                    'LR':logistic_regression_classifier,
@@ -321,7 +323,11 @@ def train():
 
     for classifier in test_classifiers:
         print('******************* {} ********************'.format(classifier))
-        clf = classifiers[classifier](X_train, y_train)
+        if classifer == "GBDT":
+            clf = gradient_boosting_classifier(earning_rate=0.05, max_depth=5)
+            clf.fit(X_train, y_train)
+        else:
+            clf = classifiers[classifier](X_train, y_train)
 
         # CV
         print('accuracy of CV:', cross_val_score(clf, X, y, cv=5).mean())
