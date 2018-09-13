@@ -320,11 +320,12 @@ def train():
         print('******************* {} ********************'.format(classifier))
         if classifier == "GBDT":
             clf = GradientBoostingClassifier(learning_rate=0.05, max_depth=5)
+            clf.fit(X_train, y_train)
         if classifier == "LR":
             clf = LogisticRegression(penalty='l2')
+            clf.fit(X_train, y_train)
         else:
-            clf = classifiers[classifier]()
-        clf.fit(X_train, y_train)
+            clf = classifiers[classifier](X_train, y_train)
 
         # CV
         print('accuracy of CV:', cross_val_score(clf, X, y, cv=5).mean())
