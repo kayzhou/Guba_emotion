@@ -4,10 +4,7 @@ from sklearn.naive_bayes import BernoulliNB, MultinomialNB
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.svm import SVC
-
-
 from sklearn.externals import joblib
-
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import classification_report

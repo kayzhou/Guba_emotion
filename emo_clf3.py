@@ -141,12 +141,13 @@ def make_features_onehot():
 
     word_list = load_word_list()
 
+    print('---- 我的词表 ----')
     i = 0
     with open('data/train/onehot-180912.txt', 'w') as f:
         for y, s in zip(labels, sentences):
             i += 1
             if not i % 1000:
-                print('line ->', i)
+                print('行 ->', i)
             vec = np.zeros(len(word_list))
             for w in thu.cut(s):
                 w = w[0]
@@ -267,6 +268,7 @@ def load_train_data(in_name, num=4):
 
 
 def stack_X_y(X1, y1, X2, y2, out_name=0):
+    print(X1.shape, y1.shape, X2.shape, y2.shape)
     if len(y1) != len(y2):
         print('两列表长度不同，不同合并。')
         return -1
@@ -283,6 +285,7 @@ def stack_X_y(X1, y1, X2, y2, out_name=0):
             for xi, yi in zip(X, y):
                 f.write(yi + '\t' + ','.join(['{:.6f}'.format(num) for num in list(xi)]) + '\n')
     print('合并数据完成。')
+    return X, y
 
 
 def train():
@@ -290,19 +293,11 @@ def train():
     调参
     """
     # 合并数据
-    """
     X1, y1 = load_train_data('data/train/onehot-180912.txt')
-    print(X1.shape, y1.shape)
     X2, y2 = load_train_data('data/train/ACL-180912.txt')
-    print(X2.shape, y2.shape)
-    stack_X_y(X1, y1, X2, y2, out_name='data/train/tmp.txt')
-
-    X1, y1 = load_train_data('data/train/tmp.txt')
+    X1, y1 = stack_X_y(X1, y1, X2, y2)
     X3, y3 = load_train_data('data/train/wv-180912.txt')
-    stack_X_y(X1, y1, X3, y3, out_name='data/train/all-180912.txt')
-    """
-
-    X, y = load_train_data('data/train/all-180912.txt', num=4)
+    X, y = stack_X_y(X1, y1, X3, y3, out_name='data/train/all-180912.txt')
     print(X.shape, y.shape)
 
     # 划分数据集
@@ -323,8 +318,8 @@ def train():
 
     for classifier in test_classifiers:
         print('******************* {} ********************'.format(classifier))
-        if classifer == "GBDT":
-            clf = gradient_boosting_classifier(earning_rate=0.05, max_depth=5)
+        if classifier == "GBDT":
+            clf = GradientBoostingClassifier(learning_rate=0.05, max_depth=5)
             clf.fit(X_train, y_train)
         else:
             clf = classifiers[classifier](X_train, y_train)
@@ -351,7 +346,6 @@ def train_model():
 
 
 if __name__ == "__main__":
-    # one-hot
     get_word_freq() # 词分析
     make_features_onehot()
     make_features_ACLwv()
