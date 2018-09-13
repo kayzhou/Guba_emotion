@@ -319,7 +319,7 @@ def train():
     for classifier in test_classifiers:
         print('******************* {} ********************'.format(classifier))
         if classifier == "GBDT":
-            clf = GradientBoostingClassifier(learning_rate=0.05, max_depth=5)
+            clf = GradientBoostingClassifier(learning_rate=0.1, max_depth=5)
             clf.fit(X_train, y_train)
         if classifier == "LR":
             clf = LogisticRegression(penalty='l2')
