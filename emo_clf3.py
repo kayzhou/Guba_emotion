@@ -288,6 +288,18 @@ def stack_X_y(X1, y1, X2, y2, out_name=0):
     return X, y
 
 
+def evaluate(clf, X, y, X_test, y_test):
+    # CV
+    print('accuracy of CV:', cross_val_score(clf, X, y, cv=5).mean())
+
+    # 模型评估
+    y_pred = []
+    for i in range(len(X_test)):
+        y_hat = clf.predict(X_test[i].reshape(1, -1))
+        y_pred.append(y_hat[0])
+    print(classification_report(y_test, y_pred))
+
+
 def train():
     """
     调参
@@ -316,26 +328,34 @@ def train():
         'GBDT':gradient_boosting_classifier
     }
 
-    for classifier in test_classifiers:
-        print('******************* {} ********************'.format(classifier))
-        if classifier == "GBDT":
-            clf = GradientBoostingClassifier(learning_rate=0.1, max_depth=5)
-            clf.fit(X_train, y_train)
-        if classifier == "LR":
-            clf = LogisticRegression(penalty='l2')
-            clf.fit(X_train, y_train)
-        else:
-            clf = classifiers[classifier](X_train, y_train)
+    # for classifier in test_classifiers:
+    #     print('******************* {} ********************'.format(classifier))
+    #     if classifier == "GBDT":
+    #         clf = GradientBoostingClassifier(learning_rate=0.1, max_depth=5)
+    #         clf.fit(X_train, y_train)
+    #     if classifier == "LR":
+    #         clf = LogisticRegression(penalty='l2')
+    #         clf.fit(X_train, y_train)
+    #     else:
+    #         clf = classifiers[classifier](X_train, y_train)
+    #     evaluate(clf, X, y, X_test, y_test)
 
-        # CV
-        print('accuracy of CV:', cross_val_score(clf, X, y, cv=5).mean())
 
-        # 模型评估
-        y_pred = []
-        for i in range(len(X_test)):
-            y_hat = clf.predict(X_test[i].reshape(1, -1))
-            y_pred.append(y_hat[0])
-        print(classification_report(y_test, y_pred))
+    original_params = {'n_estimators': 1000, 'max_leaf_nodes': 4, 'max_depth': 3, 'random_state': 23,
+                    'min_samples_split': 5}
+
+    for i, setting in enumerate([{'learning_rate': 1.0, 'subsample': 1.0},
+                    {'learning_rate': 0.1, 'subsample': 1.0},
+                    {'learning_rate': 1.0, 'subsample': 0.5},
+                    {'learning_rate': 0.1, 'subsample': 0.5},
+                    {'learning_rate': 0.1, 'max_features': 2}]):
+        print('******************* {} ********************'.format(i))
+        params = dict(original_params)
+        params.update(setting)
+
+        clf = GradientBoostingClassifier(**params)
+        clf.fit(X_train, y_train)
+        evaluate(clf, X, y, X_test, y_test)
 
 
 def train_model():
