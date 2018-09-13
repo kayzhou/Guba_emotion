@@ -124,7 +124,7 @@ def get_word_freq():
                 print(w, gain, words_freq[w], sep='\t', file=f)
 
 
-def make_features_onehot():
+def make_features_onehot(features_file_name):
 
     def load_word_list(first=2400):
         word_list = []
@@ -143,7 +143,7 @@ def make_features_onehot():
 
     print('---- 我的词表 ----')
     i = 0
-    with open('data/train/onehot-180912.txt', 'w') as f:
+    with open(features_file_name, 'w') as f:
         for y, s in zip(labels, sentences):
             i += 1
             if not i % 1000:
@@ -182,12 +182,12 @@ def load_word_vec():
     return word_vec
 
 
-def make_features_ACLwv():
+def make_features_ACLwv(features_file_name):
     word_vec = load_word_vec()
     i = 0
     # 建立训练文件：ACL的wv
     print('---- ACL wv ----')
-    with open('data/train/ACL-180912.txt', 'w') as f:
+    with open(features_file_name, 'w') as f:
         for y, s in zip(labels, sentences):
             i += 1
             if not i % 1000:
@@ -211,11 +211,11 @@ def make_features_ACLwv():
     print('总行数：', i)
 
 
-def make_features_mywv():
+def make_features_mywv(features_file_name):
     i = 0
     # 建立训练文件: 我的wv
     print('---- 我的wv ----')
-    with open('data/train/wv-180912.txt', 'w') as f:
+    with open(features_file_name, 'w') as f:
         for y, s in zip(labels, sentences):
             i += 1
             if not i % 1000:
@@ -293,36 +293,38 @@ def train():
     调参
     """
     # 合并数据
-    X1, y1 = load_train_data('data/train/onehot-180912.txt')
-    X2, y2 = load_train_data('data/train/ACL-180912.txt')
+    X1, y1 = load_train_data('data/train/onehot.txt')
+    X2, y2 = load_train_data('data/train/ACLwv.txt')
     X1, y1 = stack_X_y(X1, y1, X2, y2)
-    X3, y3 = load_train_data('data/train/wv-180912.txt')
+    X3, y3 = load_train_data('data/train/mywv.txt')
     X, y = stack_X_y(X1, y1, X3, y3, out_name='data/train/all-180912.txt')
     print(X.shape, y.shape)
 
     # 划分数据集
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=23)
 
-
     # 初始化分类器
-    test_classifiers = ['LR', 'DT', 'GBDT']
-    classifiers = {'NB':naive_bayes_classifier,
-                  'KNN':knn_classifier,
-                   'LR':logistic_regression_classifier,
-                   'RF':random_forest_classifier,
-                   'DT':decision_tree_classifier,
-                  'SVM':svm_classifier,
-                'SVMCV':svm_cross_validation,
-                 'GBDT':gradient_boosting_classifier
+    test_classifiers = ['LR', 'GBDT']
+    classifiers = {
+        'NB':naive_bayes_classifier,
+        'KNN':knn_classifier,
+        'LR':logistic_regression_classifier,
+        'RF':random_forest_classifier,
+        'DT':decision_tree_classifier,
+        'SVM':svm_classifier,
+        'SVMCV':svm_cross_validation,
+        'GBDT':gradient_boosting_classifier
     }
 
     for classifier in test_classifiers:
         print('******************* {} ********************'.format(classifier))
         if classifier == "GBDT":
             clf = GradientBoostingClassifier(learning_rate=0.05, max_depth=5)
-            clf.fit(X_train, y_train)
+        if classifier == "LR":
+            clf = LogisticRegression(penalty='l2')
         else:
-            clf = classifiers[classifier](X_train, y_train)
+            clf = classifiers[classifier]()
+        clf.fit(X_train, y_train)
 
         # CV
         print('accuracy of CV:', cross_val_score(clf, X, y, cv=5).mean())
@@ -344,11 +346,10 @@ def train_model():
     joblib.dump(clf, "emo-LR-v1.model")
 
 
-
 if __name__ == "__main__":
     get_word_freq() # 词分析
-    make_features_onehot()
-    make_features_ACLwv()
-    make_features_mywv()
+    make_features_onehot('data/train/onehot.txt')
+    make_features_ACLwv('data/train/ACLwv.txt')
+    make_features_mywv('data/train/mywv.txt')
     train()
     # train_model()
