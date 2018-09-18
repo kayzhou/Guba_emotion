@@ -328,17 +328,18 @@ def train():
         'GBDT':gradient_boosting_classifier
     }
 
-    # for classifier in test_classifiers:
-    #     print('******************* {} ********************'.format(classifier))
-    #     if classifier == "GBDT":
-    #         clf = GradientBoostingClassifier(learning_rate=0.1, max_depth=5)
-    #         clf.fit(X_train, y_train)
-    #     if classifier == "LR":
-    #         clf = LogisticRegression(penalty='l2')
-    #         clf.fit(X_train, y_train)
-    #     else:
-    #         clf = classifiers[classifier](X_train, y_train)
-    #     evaluate(clf, X, y, X_test, y_test)
+    """
+    for classifier in test_classifiers:
+        print('******************* {} ********************'.format(classifier))
+        if classifier == "GBDT":
+            clf = GradientBoostingClassifier(learning_rate=0.1, max_depth=5)
+            clf.fit(X_train, y_train)
+        if classifier == "LR":
+            clf = LogisticRegression(penalty='l2')
+            clf.fit(X_train, y_train)
+        else:
+            clf = classifiers[classifier](X_train, y_train)
+        evaluate(clf, X, y, X_test, y_test)
 
 
     original_params = {'n_estimators': 1000, 'max_leaf_nodes': 4, 'max_depth': 3, 'random_state': 23,
@@ -356,6 +357,19 @@ def train():
         clf = GradientBoostingClassifier(**params)
         clf.fit(X_train, y_train)
         evaluate(clf, X, y, X_test, y_test)
+    """
+
+    original_params = {}
+
+    for i, setting in enumerate([{'C':0.125}, {'C': 0.25}, {'C':0.5}, {'C':1.0}, {'C':2.0}, {'C': 4.0}, {'C':8.0}]):
+        print('******************* {} ********************'.format(i))
+        print(setting)
+        params = dict(original_params)
+        params.update(setting)
+
+        clf = LinearSVC(**params)
+        clf.fit(X_train, y_train)
+        evaluate(clf, X, y, X_test, y_test)
 
 
 def train_model():
@@ -368,9 +382,11 @@ def train_model():
 
 
 if __name__ == "__main__":
+    """
     get_word_freq() # 词分析
     make_features_onehot('data/train/onehot.txt')
     make_features_ACLwv('data/train/ACLwv.txt')
     make_features_mywv('data/train/mywv.txt')
+    """
     train()
     # train_model()

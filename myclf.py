@@ -8,6 +8,8 @@ from sklearn.externals import joblib
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import classification_report
+from sklearn.svm import LinearSVC
+
 
 # Multinomial Naive Bayes Classifier
 def naive_bayes_classifier(train_x, train_y):
