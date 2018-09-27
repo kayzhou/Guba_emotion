@@ -105,4 +105,5 @@ venv.bak/
 data/
 emotion_cla/
 model/
+*.tar.gz
 
