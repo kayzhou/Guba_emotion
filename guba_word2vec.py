@@ -1,8 +1,3 @@
-import glob
-import json
-from collections import defaultdict
-
-from gensim import corpora
 from gensim.models.word2vec import LineSentence
 from gensim.models import Word2Vec, TfidfModel, FastText
 from thulac import thulac
