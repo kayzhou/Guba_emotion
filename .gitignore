@@ -103,6 +103,7 @@ venv.bak/
 # mypy
 .mypy_cache/
 data/
+local_data
 emotion_cla/
 model/
 *.tar.gz
