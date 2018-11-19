@@ -106,4 +106,5 @@ data/
 emotion_cla/
 model/
 *.tar.gz
+data
 
