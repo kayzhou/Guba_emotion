@@ -6,14 +6,14 @@ import ujson as json
 from thulac import thulac
 from tqdm import tqdm
 import sys
-thu = thulac(user_dict='data/emo-words.txt', seg_only=True)
+thu = thulac(user_dict='local_data/emo-words.txt', seg_only=True)
 
 def to_words(s):
     return [w[0] for w in thu.cut(s) if w[0] != "\n"]
 
 # print(common_texts)
-in_dir = "/Volumes/Disk_B/data/origin/tweet"
-with open("/Volumes/Disk_B/data/cuted_tweet.txt", "w") as f:
+in_dir = "data/guba-tweet"
+with open("data/cuted_tweet.txt", "w") as f:
     for in_name in tqdm(os.listdir(in_dir)):
         if in_name.endswith(".txt"):
             in_name = os.path.join(in_dir, in_name)
