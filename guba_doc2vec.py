@@ -12,13 +12,17 @@ def to_words(s):
     return [w[0] for w in thu.cut(s) if w[0] != "\n"]
 
 # print(common_texts)
+cnt = 0
 in_dir = "data/guba-tweet"
 with open("data/cuted_tweet.txt", "w") as f:
-    for in_name in tqdm(os.listdir(in_dir)):
+    for in_name in os.listdir(in_dir):
         if in_name.endswith(".txt"):
             in_name = os.path.join(in_dir, in_name)
             for line in open(in_name):
                 d = json.loads(line)
+                cnt += 1
+                if cnt % 100000 == 0:
+                    print(cnt)
                 if d["content"] != "":
                     sen = d["content"].replace("\r\n", "")
                     # print(sen)
