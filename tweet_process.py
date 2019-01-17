@@ -7,6 +7,7 @@ Created on 2018-11-19 14:51:58
 import os
 import sqlite3
 import sys
+import json
 
 from thulac import thulac
 from tqdm import tqdm
