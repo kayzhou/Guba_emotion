@@ -51,4 +51,4 @@ if __name__ == "__main__":
                 for line in open(in_name):
                     text = json.loads(line.strip())["content"]
                     tweet = tw.process_tweet(text)
-                    f.write(label + "\t" + " ".join(tweet) + "\n")
+                    f.write(" ".join(tweet) + "\n")
