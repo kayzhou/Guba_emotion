@@ -48,6 +48,6 @@ if __name__ == "__main__":
             in_name = os.path.join("data/guba-tweet", in_name)
             if in_name.endswith(".txt"):
                 for line in open(in_name):
-                    label, text = line.strip().split("\t")
+                    text = json.loads(line.strip())["content"]
                     tweet = tw.process_tweet(text)
                     f.write(label + "\t" + " ".join(tweet) + "\n")
