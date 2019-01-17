@@ -4,12 +4,15 @@
 Created on 2018-11-19 14:51:58
 @author: https://kayzhou.github.io/
 """
+import os
 import sqlite3
-from TwProcess import CustomTweetTokenizer
-from tqdm import tqdm
+import sys
+
 from thulac import thulac
 from tqdm import tqdm
-import sys
+
+from TwProcess import CustomTweetTokenizer
+
 thu = thulac(user_dict='data/emo-words.txt', seg_only=True)
 
 
@@ -34,8 +37,17 @@ if __name__ == "__main__":
 
     tw = TwPro()
 
-    with open("data/train.txt", "w") as f:
-        for line in tqdm(open("data/labelled_split/labels_text_random.txt")):
-            label, text = line.strip().split("\t")
-            tweet = tw.process_tweet(text)
-            f.write(label + "\t" + " ".join(tweet) + "\n")
+    # with open("data/train.txt", "w") as f:
+    #     for line in tqdm(open("data/labelled_split/labels_text_random.txt")):
+    #         label, text = line.strip().split("\t")
+    #         tweet = tw.process_tweet(text)
+    #         f.write(label + "\t" + " ".join(tweet) + "\n")
+
+    with open("data/traindata_for_word2vec.txt", "w") as f:
+        for in_name in tqdm(os.listdir("data/guba-tweet")):
+            in_name = os.path.join("data/guba-tweet", in_name)
+            if in_name.endswith(".txt"):
+                for line in open(in_name):
+                    label, text = line.strip().split("\t")
+                    tweet = tw.process_tweet(text)
+                    f.write(label + "\t" + " ".join(tweet) + "\n")
