@@ -8,6 +8,7 @@ Created on 2018-12-13 11:07:53
 import logging
 import sys
 
+from tweet_process import TwPro
 import numpy as np
 import torch
 import torch.nn as nn
@@ -21,11 +22,10 @@ from torch import autograd, optim
 logging.basicConfig(format="%(levelname)s - %(asctime)s - %(message)s", level=logging.INFO)
 
 
-
 class Config:
 
     def __init__(self):
-        self.train_file = "data/labelled_split/labels_text.txt"
+        self.train_file = "data/labelled_split/labels_text_random.txt"
         self.train_batch_size = 128
 
         self.learning_rate = 0.001
@@ -57,12 +57,27 @@ class Dataset:
         return Word2Vec.load("model/guba_word2vec.model")
 
     def read_wv2(self):
-        print("Loading wv2 ...")
-        return Word2Vec.load("model/sgns.financial.word")
+        """
+        加载ACL2018词向量
+        """
+        word_vec = {}
+        print('加载词向量中 ...')
+        for i, line in enumerate(open('model/sgns.financial.word')):
+            if i <= 10:
+                continue
+            if i > 150000:
+                break
+            words = line.strip().split(' ')
+            word = words[0]
+            word_vec[word] = np.array([float(num) for num in words[1:]])
+    #         except UnicodeDecodeError:
+    #             print("编码问题，行 {}".format(i))
+        print('加载词完成！一共 {}个词'.format(len(word_vec)))
+        return word_vec
 
-    def wv1(self, line):
+
+    def wv1(self, words):
         v = np.zeros(100 * 300).reshape(100, 300)
-        words = line.strip().split(" ")
         _index = 0
         for w in words:
             if _index >= 100:
@@ -72,9 +87,9 @@ class Dataset:
                 _index += 1
         return v
 
-    def wv2(self, line):
+
+    def wv2(self, words):
             v = np.zeros(100 * 300).reshape(100, 300)
-            words = line.strip().split(" ")
             _index = 0
             for w in words:
                 if _index >= 100:
@@ -93,24 +108,40 @@ class Dataset:
             self._wv1 = self.read_wv1()
         if not self._wv2:
             self._wv2 = self.read_wv2()
+
         self._reset()
 
         labels = []
         X = []
+        tw = TwPro()
+
         for line in self._file:
             try:
                 label, sentence = line.strip().split("\t")
             except ValueError:
                 continue
 
-            label = int(label.strip())
-            sequence1 = self.wv1(sentence)
-            sequence2 = self.wv2(sentence)
+            label = label.strip()
+            if label == "-":
+                label = 0
+            elif label == "x":
+                continue
+
+            print(label)
+            words = tw.process_tweet(sentence)
+            sequence1 = self.wv1(words)
+            sequence2 = self.wv2(words)
             labels.append(label)
             X.append([sequence1, sequence2])
 
-        np.save("data/train_data/X.npy", np.array(X))
-        np.save("data/train_data/Y.npy", np.array(labels))
+        np.save("data/train/X.npy", np.array(X))
+        np.save("data/train/Y.npy", np.array(labels))
+
+    def _load(self):
+        X = np.load("data/train/X.npy")
+        y = np.load("data/train/Y.npy")
+        return X, y
+
 
     def _reset(self):
         self._buffer = None
@@ -120,132 +151,14 @@ class Dataset:
         self._buffer_iter = None
 
 
-class Dataset2:
-    def __init__(self, filepath, batch_size):
-        self._file = open(filepath)
-        self._wv1 = self.read_wv1()
-        self._wv2 = self.read_wv2()
-        self._batch_size = batch_size
-
-        self._file.seek(0)
-        self._buffer = []
-        self._buffer_iter = None
-        self._buff_count = 0
-        self._file_num = 0
-
-        self._reset()
-
-    def wv1(self, line):
-        v = np.zeros(40 * 400).reshape(40, 400)
-        words = line.strip().split(" ")
-        _index = 0
-        for w in words:
-            if _index >= 40:
-                break
-            if w in self._wv1.wv:
-                v[_index] = self._wv1.wv[w]
-                _index += 1
-        return v
-
-    def wv2(self, line):
-            v = np.zeros(40 * 400).reshape(40, 400)
-            words = line.strip().split(" ")
-            _index = 0
-            for w in words:
-                if _index >= 40:
-                    break
-                if w in self._wv2:
-                    v[_index] = self._wv2[w]
-                    _index += 1
-            return v
-
-    def read_wv1(self):
-        print("Loading wv1 ...")
-        return Word2Vec.load("model/word2vec.mod")
-
-    def read_wv2(self):
-        print("Loading wv2 ...")
-        return word2vecReader.Word2Vec.load_word2vec_format(
-            "/media/alex/data/word2vec_twitter_model/word2vec_twitter_model.bin", binary=True)
-
-    # 迭代时候每次先调用__iter__，初始化
-    # 接着调用__next__返回数据
-    # 如果没有buffer的时候，就补充数据_fill_buffer
-    # 如果buffer补充后仍然为空，则停止迭代
-
-    def __iter__(self):
-        self._reset()
-        return self
-
-    def _fill_buffer(self):
-            if self._buff_count > 0:
-                return 1
-
-            train_filename = "train_data/train_{:0>2d}".format(0)
-            # 遍历文件
-            with open(train_filename) as f:
-                for line in f:
-                    try:
-                        label, sentence = line.strip().split("\t")
-                    except ValueError:
-                        continue
-                    label = int(label.strip())
-                    sequence1 = self.wv1(sentence)
-                    sequence2 = self.wv2(sentence)
-
-                    self._buff_count += 1
-                    self._buffer.append((label, [sequence1, sequence2]))
-
-            self._file_num += 1
-            self._buffer_iter = iter(self._buffer)
-            self._buffer = []
-
-            if self._file_num > 18:
-                return 0
-            else:
-                return 1
-
-    def __next__(self):
-        if self._fill_buffer() == 0:
-            raise StopIteration
-
-        label_batch = []
-        sequence_batch = []
-        for label, sequence in self._buffer_iter:
-            self._buff_count -= 1
-            label_batch.append(label)
-            sequence_batch.append(sequence)
-            if len(label_batch) == self._batch_size:
-                break
-        return {"sequences": torch.Tensor(sequence_batch), "labels": torch.LongTensor(label_batch)}
-
-    def _reset(self):
-        self._file.seek(0)
-        self._buffer = []
-        self._buffer_iter = None
-        self._buff_count = 0
-        self._file_num = 0
-
-    def get_testdata(self):
-        labels = []
-        sequences = []
-        for line in open("train_data/0-test.txt"):
-            labels.append(0)
-            sequences.append([self.wv1(line), self.wv2(line)])
-        for line in open("train_data/1-test.txt"):
-            labels.append(1)
-            sequences.append([self.wv1(line), self.wv2(line)])
-        return torch.LongTensor(labels), torch.Tensor(sequences)
-
-
-# -------------- MODEL --------------
+# -------------- MODEL -------------- #
 class CNNClassifier(nn.Module):
     def __init__(self):
         super(CNNClassifier, self).__init__()
 
-        # 2 in- channels, 32 out- channels, 3 * 400 windows size
-        self.conv = torch.nn.Conv2d(2, 64, kernel_size=(3, 400), groups=2)
-        self.f1 = nn.Linear(1216, 128)
+        # 2 in- channels, 32 out- channels, 3 * 300 windows size
+        self.conv = torch.nn.Conv2d(2, 64, kernel_size=(3, 300), groups=2)
+        self.f1 = nn.Linear(6272, 128)
         self.f2 = nn.Linear(128, 64)
         self.f3 = nn.Linear(64, 32)
         self.f4 = nn.Linear(32, 2)
@@ -273,51 +186,78 @@ def train(model, train_set, test_set):
     loss_function = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=config.learning_rate)
 
+
     writer = SummaryWriter(log_dir="log")
 
     epoch = 0
     step = 0
 
+    # make dataset
+    train_data = []
+    batch_size = 128
+    X, y = train_set._load()
+
+    for i in range(len(y)):
+        if i == 0:
+            label_batch = []
+            sequence_batch = []
+
+        elif i % 128 == 0:
+            train_data.append({"sequences": torch.Tensor(sequence_batch),
+                                  "labels": torch.LongTensor(label_batch)})
+            label_batch = []
+            sequence_batch = []
+
+        label_batch.append(int(y[i]))
+        sequence_batch.append(X[i])
+
+    if label_batch:
+        train_data.append({"sequences": torch.Tensor(sequence_batch),
+                                "labels": torch.LongTensor(label_batch)})
+
+    print("finished dataset!")
+
     for epoch in range(1, config.num_epochs + 1):
         logging.info("==================== Epoch: {} ====================".format(epoch))
         running_losses = []
-        for batch in train_set:
+
+        for batch in train_data:
 
             sequences = batch["sequences"]
             labels = batch["labels"]
 
-        #     # Predict
-        #     try:
-        #         probs, classes = model(sequences)
-        #     except:
-        #         print(sequences.size(), labels.size())
-        #         print("发生致命错误！")
+            # Predict
+            try:
+                probs, classes = model(sequences)
+            except:
+                print(sequences.size(), labels.size())
+                print("发生致命错误！")
 
-        #     # Backpropagation
-        #     optimizer.zero_grad()
-        #     losses = loss_function(probs, labels)
-        #     losses.backward()
-        #     optimizer.step()
+            # Backpropagation
+            optimizer.zero_grad()
+            losses = loss_function(probs, labels)
+            losses.backward()
+            optimizer.step()
 
-        #     # Log summary
-        #     running_losses.append(losses.data.item())
-        #     if step % config.summary_interval == 0:
-        #         loss = sum(running_losses) / len(running_losses)
-        #         writer.add_scalar("train/loss", loss, step)
-        #         logging.info("step = {}, loss = {}".format(step, loss))
-        #         running_losses = []
+            # Log summary
+            running_losses.append(losses.data.item())
+            if step % config.summary_interval == 0:
+                loss = sum(running_losses) / len(running_losses)
+                writer.add_scalar("train/loss", loss, step)
+                logging.info("step = {}, loss = {}".format(step, loss))
+                running_losses = []
 
-        #     step += 1
+            step += 1
 
-        # # Classification report
+        # Classification report
         # test_X = test_set["sequences"]
         # test_labels = test_set["labels"]
         # probs, y_pred = model(test_X)
         # target_names = ['pro-hillary', 'pro-trump']
         # logging.info("{}".format(classification_report(test_labels, y_pred, target_names=target_names)))
 
-        # # Save
-        # torch.save(model, "model/11292018-model-epoch-{}.pkl".format(epoch))
+        # Save
+        torch.save(model, "model/11292018-model-epoch-{}.pkl".format(epoch))
 
         epoch += 1
 
@@ -325,7 +265,8 @@ def train(model, train_set, test_set):
 config = Config()
 
 if __name__ == "__main__":
-    train_set = Dataset2(config.train_file, config.train_batch_size)
-    test_set = train_set.get_testdata()
+    train_set = Dataset(config.train_file, config.train_batch_size)
+    # train_set._save()
+    # test_set = train_set.get_testdata()
     model = CNNClassifier()
-    train(model, train_set, test_set)
+    train(model, train_set, None)
