@@ -5,20 +5,21 @@ Created on 2018-12-13 11:07:53
 @author: https://kayzhou.github.io/
 """
 
+import logging
 import sys
+
 import numpy as np
-from gensim.models import Word2Vec
-import word2vecReader
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from gensim.models import Word2Vec
+from sklearn.metrics import classification_report
+from tensorboardX import SummaryWriter
 from torch import autograd, optim
-import logging
+
 # logging.basicConfig(filename="log/train-11302018.log", format="%(levelname)s - %(asctime)s - %(message)s", level=logging.INFO)
 logging.basicConfig(format="%(levelname)s - %(asctime)s - %(message)s", level=logging.INFO)
 
-from tensorboardX import SummaryWriter
-from sklearn.metrics import classification_report
 
 
 class Config:
@@ -60,11 +61,11 @@ class Dataset:
         return Word2Vec.load("model/sgns.financial.word")
 
     def wv1(self, line):
-        v = np.zeros(40 * 400).reshape(40, 400)
+        v = np.zeros(100 * 300).reshape(100, 300)
         words = line.strip().split(" ")
         _index = 0
         for w in words:
-            if _index >= 40:
+            if _index >= 100:
                 break
             if w in self._wv1.wv:
                 v[_index] = self._wv1.wv[w]
@@ -72,11 +73,11 @@ class Dataset:
         return v
 
     def wv2(self, line):
-            v = np.zeros(40 * 400).reshape(40, 400)
+            v = np.zeros(100 * 300).reshape(100, 300)
             words = line.strip().split(" ")
             _index = 0
             for w in words:
-                if _index >= 40:
+                if _index >= 100:
                     break
                 if w in self._wv2:
                     v[_index] = self._wv2[w]
@@ -93,7 +94,6 @@ class Dataset:
         if not self._wv2:
             self._wv2 = self.read_wv2()
         self._reset()
-        count = 0
 
         labels = []
         X = []
@@ -108,48 +108,9 @@ class Dataset:
             sequence2 = self.wv2(sentence)
             labels.append(label)
             X.append([sequence1, sequence2])
-            count += 1
-            if count % (self._batch_size * 100) == 0:
-                np.save("/media/alex/data/train_data/X_{}.npy".format(int(count /
-                self._batch_size / 100)), np.array(X))
-                np.save("/media/alex/data/train_data/Y_{}.npy".format(int(count /
-                self._batch_size / 100)), np.array(labels))
-                labels = []
-                X = []
-                print(count)
 
-    def __iter__(self):
-        self._reset()
-        return self
-
-    def _fill_buffer(self):
-        if self._count == 0 and self._file_num <= 189:
-            self._buffer = []
-            # print("load file {} ...".format(self._file_num))
-            X = np.load("/media/alex/data/train_data/X_{}.npy".format(self._file_num))
-            Y = np.load("/media/alex/data/train_data/Y_{}.npy".format(self._file_num))
-            self._file_num += 1
-            self._count += Y.shape[0]
-            for i in range(Y.shape[0]):
-                self._buffer.append((Y[i], X[i]))
-            self._buffer_iter = iter(self._buffer)
-            # print("loading finished.")
-
-    def __next__(self):
-        self._fill_buffer() # 每次读1024个batch作为buffer
-        if self._count == 0: # After filling, still empty, stop iter!
-            raise StopIteration
-
-        label_batch = []
-        sequence_batch = []
-
-        for label, sequence in self._buffer_iter:
-            self._count -= 1
-            label_batch.append(label)
-            sequence_batch.append(sequence)
-            if len(label_batch) == self._batch_size:
-                break
-        return {"sequences": torch.Tensor(sequence_batch), "labels": torch.LongTensor(label_batch)}
+        np.save("data/train_data/X.npy", np.array(X))
+        np.save("data/train_data/Y.npy", np.array(labels))
 
     def _reset(self):
         self._buffer = None
@@ -157,27 +118,6 @@ class Dataset:
         self._file_num = 1
         self._buffer = []
         self._buffer_iter = None
-
-    def save_testdata(self):
-        if not self._wv1:
-            self._wv1 = self.read_wv1()
-        if not self._wv2:
-            self._wv2 = self.read_wv2()
-
-        labels = []
-        sequences = []
-        for line in open("data/0-test.txt"):
-            labels.append(0)
-            sequences.append([self.wv1(line), self.wv2(line)])
-        for line in open("data/1-test.txt"):
-            labels.append(1)
-            sequences.append([self.wv1(line), self.wv2(line)])
-        np.save("/media/alex/data/train_data/X_test.npy", np.array(sequences))
-        np.save("/media/alex/data/train_data/Y_test.npy", np.array(labels))
-
-    def get_testdata(self):
-        return {"sequences": torch.Tensor(np.load("/media/alex/data/train_data/X_test.npy")),
-                "labels": torch.LongTensor(np.load("/media/alex/data/train_data/Y_test.npy"))}
 
 
 class Dataset2:
@@ -298,6 +238,7 @@ class Dataset2:
         return torch.LongTensor(labels), torch.Tensor(sequences)
 
 
+# -------------- MODEL --------------
 class CNNClassifier(nn.Module):
     def __init__(self):
         super(CNNClassifier, self).__init__()
@@ -388,4 +329,3 @@ if __name__ == "__main__":
     test_set = train_set.get_testdata()
     model = CNNClassifier()
     train(model, train_set, test_set)
-
