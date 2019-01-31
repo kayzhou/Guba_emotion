@@ -109,3 +109,4 @@ model/
 *.tar.gz
 data
 
+log/*

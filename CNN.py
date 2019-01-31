@@ -8,7 +8,6 @@ Created on 2018-12-13 11:07:53
 import logging
 import sys
 
-from tweet_process import TwPro
 import numpy as np
 import torch
 import torch.nn as nn
@@ -18,8 +17,11 @@ from sklearn.metrics import classification_report
 from tensorboardX import SummaryWriter
 from torch import autograd, optim
 
+from tweet_process import TwPro
+
 # logging.basicConfig(filename="log/train-11302018.log", format="%(levelname)s - %(asctime)s - %(message)s", level=logging.INFO)
-logging.basicConfig(format="%(levelname)s - %(asctime)s - %(message)s", level=logging.INFO)
+logging.basicConfig(
+    format="%(levelname)s - %(asctime)s - %(message)s", level=logging.INFO)
 
 
 class Config:
@@ -51,7 +53,6 @@ class Dataset:
 
         self._reset()
 
-
     def read_wv1(self):
         print("Loading wv1 ...")
         return Word2Vec.load("model/guba_word2vec.model")
@@ -75,7 +76,6 @@ class Dataset:
         print('加载词完成！一共 {}个词'.format(len(word_vec)))
         return word_vec
 
-
     def wv1(self, words):
         v = np.zeros(100 * 300).reshape(100, 300)
         _index = 0
@@ -87,17 +87,16 @@ class Dataset:
                 _index += 1
         return v
 
-
     def wv2(self, words):
-            v = np.zeros(100 * 300).reshape(100, 300)
-            _index = 0
-            for w in words:
-                if _index >= 100:
-                    break
-                if w in self._wv2:
-                    v[_index] = self._wv2[w]
-                    _index += 1
-            return v
+        v = np.zeros(100 * 300).reshape(100, 300)
+        _index = 0
+        for w in words:
+            if _index >= 100:
+                break
+            if w in self._wv2:
+                v[_index] = self._wv2[w]
+                _index += 1
+        return v
 
     # 迭代时候每次先调用__iter__，初始化
     # 接着调用__next__返回数据
@@ -142,7 +141,6 @@ class Dataset:
         y = np.load("data/train/Y.npy")
         return X, y
 
-
     def _reset(self):
         self._buffer = None
         self._count = 0
@@ -168,7 +166,7 @@ class CNNClassifier(nn.Module):
         out = F.relu(out)
         out = torch.squeeze(out)
         out = F.max_pool1d(out, 2)
-        out = out.view(-1, 2 * 32 * 19) # 9 is after pooling
+        out = out.view(-1, 2 * 32 * 98)  # 98 is after pooling
         out = F.relu(self.f1(out))
         out = F.relu(self.f2(out))
         out = F.relu(self.f3(out))
@@ -186,13 +184,12 @@ def train(model, train_set, test_set):
     loss_function = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=config.learning_rate)
 
-
     writer = SummaryWriter(log_dir="log")
 
     epoch = 0
     step = 0
 
-    # make dataset
+    # making dataset
     train_data = []
     batch_size = 128
     X, y = train_set._load()
@@ -204,7 +201,7 @@ def train(model, train_set, test_set):
 
         elif i % 128 == 0:
             train_data.append({"sequences": torch.Tensor(sequence_batch),
-                                  "labels": torch.LongTensor(label_batch)})
+                               "labels": torch.LongTensor(label_batch)})
             label_batch = []
             sequence_batch = []
 
@@ -213,12 +210,13 @@ def train(model, train_set, test_set):
 
     if label_batch:
         train_data.append({"sequences": torch.Tensor(sequence_batch),
-                                "labels": torch.LongTensor(label_batch)})
+                           "labels": torch.LongTensor(label_batch)})
 
     print("finished dataset!")
 
     for epoch in range(1, config.num_epochs + 1):
-        logging.info("==================== Epoch: {} ====================".format(epoch))
+        logging.info(
+            "==================== Epoch: {} ====================".format(epoch))
         running_losses = []
 
         for batch in train_data:
