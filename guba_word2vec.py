@@ -34,8 +34,7 @@ def get_train_data():
 
 
 if __name__ == '__main__':
-    cut_them()
-    corpus = LineSentence('/home/kayzhou/Project/Guba_analysis/data/content/cuted_tweets.txt')
+    corpus = LineSentence('data/traindata_for_word2vec.txt')
     print(type(corpus))
 
     print('最终开始训练 ... ...')
