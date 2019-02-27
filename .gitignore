@@ -111,4 +111,4 @@ data
 
 log/*
 build_dataset.ipynb
-disk/*
+disk
